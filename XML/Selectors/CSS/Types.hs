@@ -61,6 +61,7 @@ data PredOp
 -- | Only supporting two pseudoelement selectors.
 data Pseudo = FirstChild
             | LastChild
+            | NthChild Int
     deriving (Show, Typeable, Data)
 
 data Token  = TokenSpace

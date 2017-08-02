@@ -43,6 +43,7 @@ simpleAxis (SimpleSelector mbelem specs mbpseudo) = axis where
         Nothing -> return
         Just FirstChild -> mhead . child
         Just LastChild -> return . last . child
+        Just (NthChild n) -> return . (!! (n-1)) . child
     specaxis = loop specs
     loop [] = return
     loop (spec:ss) = toaxis spec >=> loop ss

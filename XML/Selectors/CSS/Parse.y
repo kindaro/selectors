@@ -33,6 +33,7 @@ import XML.Selectors.CSS.Types
     ']'                     { TokenCB }
     nat                     { TokenDigits $$ }
     '*'                     { TokenAster }
+    nthchild                { TokenNthChild }
 
 %%
 
@@ -78,6 +79,7 @@ PredOp  : '='                                       { Equals }
 
 Pseudo  : ':' firstchild                            { FirstChild }
         | ':' lastchild                             { LastChild }
+        | ':' nthchild '(' nat ')'                  { NthChild (read $4) }
 
 {
 parseError toks = Left $ "parse error: " ++ show toks
