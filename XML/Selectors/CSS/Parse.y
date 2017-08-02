@@ -52,9 +52,15 @@ Combinator  : sp                                    { Descendant }
 SimpleSelector  : name                              { SimpleSelector (Just $1) [] Nothing }
                 | name specs                        { SimpleSelector (Just $1) $2 Nothing }
                 | name specs Pseudo                 { SimpleSelector (Just $1) $2 (Just $3) }
+                | name Pseudo                       { SimpleSelector (Just $1) [] (Just $2) }
+                | '*' specs                         { SimpleSelector Nothing $2 Nothing }
+                | '*' specs Pseudo                  { SimpleSelector Nothing $2 (Just $3) }
+                | '*' Pseudo                        { SimpleSelector Nothing [] (Just $2) }
+                | '*'                               { SimpleSelector Nothing [] Nothing }
+                -- These ones are not specified but I believe are nonetheless in common usage.
                 | specs                             { SimpleSelector Nothing $1 Nothing }
                 | specs Pseudo                      { SimpleSelector Nothing $1 (Just $2) }
-                | '*'                               { SimpleSelector Nothing [] Nothing }
+                | Pseudo                            { SimpleSelector Nothing [] (Just $1) }
 
 specs   : Specifier                                 { [$1] }
         | specs Specifier                           { $2 : $1 }
