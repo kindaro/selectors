@@ -1,0 +1,37 @@
+name: selectors
+version: '0.0.3.1'
+synopsis: CSS Selectors for DOM traversal
+description: This package provides functions for XML DOM traversal that work with
+  "Text.XML.Cursor" from the xml-conduit package. The pure Haskell functions in "XML.Selectors.CSS"
+  include a parser for CSS selector expressions and conversion to an "Axis". A QuasiQuoter
+  is provided in "XML.Selectors.CSS.TH" for static validation of selector expressions.
+category: XML
+author: Rob O'Callahan
+maintainer: ropoctl@gmail.com
+license: BSD3
+git: git@github.com:rcallahan/selectors.git
+other-extensions:
+- QuasiQuotes
+- OverloadedStrings
+- TemplateHaskell
+- CPP
+- MagicHash
+- DeriveDataTypeable
+build-tools:
+- alex
+- happy
+dependencies:
+- base ==4.*
+- xml-conduit ==1.*
+- containers >=0.5 && <0.6
+- text ==1.*
+- template-haskell ==2.*
+- array >=0.5 && <0.6
+library:
+  exposed-modules:
+  - XML.Selectors.CSS
+  - XML.Selectors.CSS.TH
+  - XML.Selectors.CSS.Types
+  other-modules:
+  - XML.Selectors.CSS.Parse
+  - XML.Selectors.CSS.Tokens
