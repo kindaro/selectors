@@ -1,15 +1,15 @@
 -- | This module exports functions for parsing and executing CSS selector
 -- expressions in pure Haskell. TH QuasiQuoters are provided in
--- "XML.Selectors.CSS.TH" for validation and static-checking of CSS selectors.
+-- "Text.XML.Selectors.CSS.TH" for validation and static-checking of CSS selectors.
 
 {-# LANGUAGE OverloadedStrings #-}
-module XML.Selectors.CSS (
+module Text.XML.Selectors.CSS (
     toAxis,
     parsePath
     ) where
 
-import XML.Selectors.CSS.Parse
-import XML.Selectors.CSS.Types
+import Text.XML.Selectors.CSS.Parse
+import Text.XML.Selectors.CSS.Types
 import Text.XML
 import Text.XML.Cursor
 import Data.List

@@ -1,9 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module XML.Selectors.CSS.TH (css) where
+module Text.XML.Selectors.CSS.TH (css) where
 
-import XML.Selectors.CSS.Parse
-import XML.Selectors.CSS
+import Text.XML.Selectors.CSS.Parse
+import Text.XML.Selectors.CSS
 import Language.Haskell.TH.Quote
 import Language.Haskell.TH
 

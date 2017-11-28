@@ -1,7 +1,7 @@
 {
-module XML.Selectors.CSS.Tokens where
+module Text.XML.Selectors.CSS.Tokens where
 
-import XML.Selectors.CSS.Types
+import Text.XML.Selectors.CSS.Types
 }
 
 %wrapper "monad"

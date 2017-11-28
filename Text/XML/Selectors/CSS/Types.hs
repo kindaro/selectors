@@ -1,7 +1,7 @@
 -- | Definitions of 'Token's in the CSS selector grammar as well as the data types
 -- representing the parse result.
 {-# LANGUAGE DeriveDataTypeable #-}
-module XML.Selectors.CSS.Types where
+module Text.XML.Selectors.CSS.Types where
 
 import Data.Typeable
 import Data.Data

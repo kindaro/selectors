@@ -1,7 +1,7 @@
-{ module XML.Selectors.CSS.Parse (parsePath) where
+{ module Text.XML.Selectors.CSS.Parse (parsePath) where
 
-import XML.Selectors.CSS.Tokens (lexer)
-import XML.Selectors.CSS.Types
+import Text.XML.Selectors.CSS.Tokens (lexer)
+import Text.XML.Selectors.CSS.Types
 }
 
 %name cssPath
