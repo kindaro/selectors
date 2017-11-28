@@ -28,6 +28,7 @@ dependencies:
 - template-haskell ==2.*
 - array >=0.5 && <0.6
 library:
+  source-dirs: src
   exposed-modules:
   - Text.XML.Selectors.CSS
   - Text.XML.Selectors.CSS.TH
@@ -35,3 +36,7 @@ library:
   other-modules:
   - Text.XML.Selectors.CSS.Parse
   - Text.XML.Selectors.CSS.Tokens
+tests:
+    selectors-test:
+        main: Spec.hs
+        source-dirs: test
