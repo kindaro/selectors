@@ -13,7 +13,6 @@ import           System.Directory
 import           System.Environment
 import           System.FilePath
 import           System.IO.Error
-
 import qualified Data.Text
 import qualified Data.Text.IO
 import           Test.HUnit
@@ -24,17 +23,19 @@ import           Text.XML.Cursor
 
 import Text.XML.Selectors.CSS (parsePath, toAxis)
 
-data CaseFiles = CaseFiles { pathToDirectory ::  FilePath
-                           , pathToSelector  ::  FilePath
-                           , pathToOriginal  ::  FilePath
-                           , pathToCuts      :: [FilePath]
-                           } deriving Show
+data CaseFiles = CaseFiles
+    { pathToDirectory ::  FilePath
+    , pathToSelector  ::  FilePath
+    , pathToOriginal  ::  FilePath
+    , pathToCuts      :: [FilePath]
+    } deriving Show
 
-data Case = Case { caseName     ::  Data.Text.Text
-                 , caseSelector ::  Data.Text.Text
-                 , caseOriginal ::  Data.Text.Text
-                 , caseCuts     :: [Data.Text.Text]
-                 } deriving Show
+data Case = Case
+    { caseName     ::  Data.Text.Text
+    , caseSelector ::  Data.Text.Text
+    , caseOriginal ::  Data.Text.Text
+    , caseCuts     :: [Data.Text.Text]
+    } deriving Show
 
 main = do
     specs
@@ -48,45 +49,45 @@ discoverCases = do
         return . either error id $ do
         -- Wouldn't it be best to rewire this with Writer, so as to include all errors rather than
         -- just the first?
-            s <- listToEither ("No selector found in test case " ++ pathCases </> dir)
+            s <- listToEither ("No selector found in test case " ++ pathToCases </> dir)
                  . filter (hasExtension "selector") $ files
-            o <- listToEither ("No original found in test case " ++ pathCases </> dir)
+            o <- listToEither ("No original found in test case " ++ pathToCases </> dir)
                  . filter (hasAnyExtension ["xml", "html"]) $ files
             c <- let x = filter (hasExtension "cut") files in
                  if null x
-                    then Left ("No cuts found in test case " ++ pathCases </> dir)
+                    then Left ("No cuts found in test case " ++ pathToCases </> dir)
                     else Right x
             return CaseFiles
-                { pathToDirectory = pathCases </> dir
-                , pathToSelector = pathCases </> dir </> s
-                , pathToOriginal = pathCases </> dir </> o
-                , pathToCuts = combine (pathCases </> dir) <$> c
+                { pathToDirectory = pathToCases </> dir
+                , pathToSelector  = pathToCases </> dir </> s
+                , pathToOriginal  = pathToCases </> dir </> o
+                , pathToCuts      = combine (pathToCases </> dir) <$> c
                 }
 
   where
-    pathCases :: FilePath
-    pathCases = (takeDirectory __FILE__ </> "cases")
+    pathToCases :: FilePath
+    pathToCases = takeDirectory __FILE__ </> "cases"
 
     tryListDirectory :: FilePath -> IO (Either IOError [FilePath])
-    tryListDirectory path = tryJust unableToList (listDirectory path)
+    tryListDirectory path = tryJust maybeUnableToListError (listDirectory path)
 
-    unableToList :: IOError -> Maybe IOError
-    unableToList e | isDoesNotExistError e || isInappropriateType e = Just e
+    maybeUnableToListError :: IOError -> Maybe IOError
+    maybeUnableToListError e | isDoesNotExistError e || isInappropriateType e = Just e
                    | otherwise = Nothing
       where
-        isInappropriateType x = case ioe_type x of 
+        isInappropriateType x = case ioe_type x of
             InappropriateType -> True
-            _ -> False
+            _                 -> False
 
     getListing :: IO [(FilePath, [FilePath])]
-    getListing = listDirectory pathCases >>= -- TODO: This is kinda poor.
-        fmap rights <$> traverse (\x -> fmap (x,) <$> tryListDirectory (pathCases </> x))
+    getListing = listDirectory pathToCases >>= -- TODO: This is kinda poor.
+        fmap (sort . rights) <$> traverse (\x -> fmap (x,) <$> tryListDirectory (pathToCases </> x))
 
     hasExtension :: String -> FilePath -> Bool
     hasExtension ext file = takeExtension file == '.' : ext
 
     hasAnyExtension :: [String] -> FilePath -> Bool
-    hasAnyExtension exts file = or (($ file) <$> hasExtension <$> exts)
+    hasAnyExtension exts file = or (($ file) . hasExtension <$> exts)
 
     listToEither :: e -> [a] -> Either e a
     listToEither e = maybe (Left e) Right . listToMaybe
