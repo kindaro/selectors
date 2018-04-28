@@ -48,3 +48,11 @@ tests:
     selectors-test:
         main: Spec.hs
         source-dirs: test
+        dependencies:
+            - selectors
+            - directory
+            - filepath
+            - blaze-markup
+            - HUnit
+            - tasty
+            - tasty-golden
