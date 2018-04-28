@@ -1,45 +1,61 @@
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE CPP               #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ParallelListComp  #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TupleSections     #-}
 
 module Main where
 
+import           Control.Arrow
 import           Control.Exception
+import           Control.Monad
+import           Data.ByteString          (ByteString)
+import qualified Data.ByteString          as ByteString
+import qualified Data.ByteString.Lazy     as Lazy
 import           Data.Either
-import           Data.List          (sort)
+import           Data.List                (sort)
+import           Data.List.Utils
 import           Data.Maybe
-import           GHC.IO.Exception   (IOException (..), IOErrorType (InappropriateType))
+import           Data.Text                (Text)
+import qualified Data.Text
+import qualified Data.Text.IO
+import           Data.Text.Lazy.Encoding
+import           GHC.IO.Exception         (IOErrorType (InappropriateType), IOException (..))
 import           System.Directory
 import           System.Environment
 import           System.FilePath
 import           System.IO.Error
-import qualified Data.Text
-import qualified Data.Text.IO
-import           Test.HUnit
+import           Test.Tasty
+import           Test.Tasty.Golden
+import           Test.Tasty.HUnit
 import           Text.Blaze               (toMarkup)
 import           Text.Blaze.Renderer.Text (renderMarkup)
 import           Text.XML
 import           Text.XML.Cursor
 
-import Text.XML.Selectors.CSS (parsePath, toAxis)
+import           Text.XML.Selectors.CSS   (parsePath, toAxis)
 
 data CaseFiles = CaseFiles
     { pathToDirectory ::  FilePath
     , pathToSelector  ::  FilePath
     , pathToOriginal  ::  FilePath
-    , pathToCuts      :: [FilePath]
+    , pathsToCuts     :: [FilePath]
     } deriving Show
 
 data Case = Case
-    { caseName     ::  Data.Text.Text
-    , caseSelector ::  Data.Text.Text
-    , caseOriginal ::  Data.Text.Text
-    , caseCuts     :: [Data.Text.Text]
+    { caseName     :: String
+    , caseSelector :: String
+    , caseOriginal :: Document
+    , caseCuts     :: [FilePath]
     } deriving Show
 
+makeName = replace "_" " " . takeFileName . dropTrailingPathSeparator . dropExtension'
+  where dropExtension' s = if last s == '.' then s else dropExtension s
+
 main = do
-    specs
-    discoverCases >>= print
+    cases <- discoverCases
+    defaultMain (testGroup "Selector cases." $ makeTestCase <$> cases)
 
 discoverCases :: IO [Case]
 discoverCases = do
@@ -61,7 +77,7 @@ discoverCases = do
                 { pathToDirectory = pathToCases </> dir
                 , pathToSelector  = pathToCases </> dir </> s
                 , pathToOriginal  = pathToCases </> dir </> o
-                , pathToCuts      = combine (pathToCases </> dir) <$> c
+                , pathsToCuts     = combine (pathToCases </> dir) <$> c
                 }
 
   where
@@ -93,13 +109,29 @@ discoverCases = do
     listToEither e = maybe (Left e) Right . listToMaybe
 
     caseFilesToCase :: CaseFiles -> IO Case
-    caseFilesToCase x = do
-        let n = Data.Text.replace "_" " " . Data.Text.pack . takeFileName
-                . dropTrailingPathSeparator . pathToDirectory $ x
-        s <- Data.Text.IO.readFile . pathToSelector $ x
-        o <- Data.Text.IO.readFile . pathToOriginal $ x
-        c <- traverse Data.Text.IO.readFile . sort . pathToCuts $ x
-        return $ Case n s o c
+    caseFilesToCase CaseFiles{..} = do
+        let caseName = makeName pathToDirectory
+            caseCuts = pathsToCuts
+        caseSelector <- Prelude.readFile pathToSelector
+        caseOriginal <- Text.XML.readFile def pathToOriginal
+        return Case { caseName, caseSelector, caseOriginal, caseCuts }
+
+makeTestCase :: Case -> TestTree
+makeTestCase Case{..} = testGroup caseName
+    $ testCase "Selector is parsed alright" (void axis)
+    : testCase "Number of cuts is just right" (length actualCuts @?= length caseCuts)
+    : [ goldenVsString (makeName p) p (return c) | p <- caseCuts | c <- actualCuts ]
+
+  where
+    axis :: Monad m => m Axis
+    axis = case toAxis <$> parsePath caseSelector of
+        Left  e -> fail e
+        Right a -> return a
+
+    actualCuts :: [Lazy.ByteString]
+    actualCuts = axis >>= \axis -> fromDocument >>> axis >>> map renderCursor $ caseOriginal
+
+    renderCursor = node >>> toMarkup >>> renderMarkup >>> encodeUtf8
 
 -- mkTest :: FilePath -> IO Test
 -- mkTest path = do
@@ -109,4 +141,4 @@ discoverCases = do
 --     dirs = ls 'tests'
 --     map mkTest dir
 
-specs = return () -- Here will go TemplateHaskell testing.
+-- specs = return () -- Here will go TemplateHaskell testing.

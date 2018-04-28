@@ -56,3 +56,6 @@ tests:
             - HUnit
             - tasty
             - tasty-golden
+            - tasty-hunit
+            - bytestring
+            - MissingH
